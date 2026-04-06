@@ -1,18 +1,18 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/GenesisFE/Genesis/refs/heads/main/Reanimation/FDless"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/GenesisFE/Genesis/refs/heads/main/Reanimation/Reanimate"))()
-
 local player = game.Players.LocalPlayer
 local char = player.Character
 local mouse = player:GetMouse()
+
 local UIS = game:GetService("UserInputService")
 local RS = game:GetService("RunService")
---// FIND STAFF ACCESSORY (Back Accessory)
+
+--// FIND STAFF (FIXED)
 local function getStaff()
     for _,v in pairs(char:GetChildren()) do
         if v:IsA("Accessory") then
             local handle = v:FindFirstChild("Handle")
-            if handle and handle:FindFirstChild("SpecialMesh") then
-                if handle.MeshId == "rbxassetid://4146870364" then
+            if handle then
+                local mesh = handle:FindFirstChildOfClass("SpecialMesh") or handle:FindFirstChildOfClass("Mesh")
+                if mesh and mesh.MeshId == "rbxassetid://4146870364" then
                     return handle
                 end
             end
@@ -21,6 +21,11 @@ local function getStaff()
 end
 
 local staff = getStaff()
+if not staff then
+    warn("STAFF NOT FOUND")
+    return
+end
+
 local root = char:WaitForChild("HumanoidRootPart")
 
 --// STATE
@@ -36,7 +41,7 @@ local function damage(hit, dmg)
     if hum and hit.Parent ~= char then
         debounce = true
         hum:TakeDamage(dmg)
-        task.wait(0.2)
+        task.wait(0.25)
         debounce = false
     end
 end
@@ -47,7 +52,7 @@ staff.Touched:Connect(function(hit)
     end
 end)
 
---// BASIC SWING (CLICK)
+--// CLICK COMBO
 mouse.Button1Down:Connect(function()
     attacking = true
     combo += 1
@@ -62,7 +67,7 @@ end)
 UIS.InputBegan:Connect(function(input, gpe)
     if gpe then return end
 
-    -- Z: Spin attack
+    -- Z: SPIN
     if input.KeyCode == Enum.KeyCode.Z then
         attacking = true
         for i = 1,20 do
@@ -72,53 +77,53 @@ UIS.InputBegan:Connect(function(input, gpe)
         attacking = false
     end
 
-    -- X: Slam
+    -- X: SLAM
     if input.KeyCode == Enum.KeyCode.X then
         attacking = true
         for i = 1,10 do
-            staff.CFrame = root.CFrame * CFrame.new(0, 3 - i*0.3, -2)
+            staff.CFrame = root.CFrame * CFrame.new(0, 3 - i*0.4, -2)
             task.wait()
         end
         attacking = false
     end
 
-    -- C: Dash hit
+    -- C: DASH
     if input.KeyCode == Enum.KeyCode.C then
         attacking = true
-        for i = 1,10 do
-            root.CFrame = root.CFrame * CFrame.new(0,0,-2)
+        for i = 1,8 do
+            root.CFrame = root.CFrame * CFrame.new(0,0,-3)
             task.wait()
         end
         attacking = false
     end
 
-    -- R: Heavy swing
+    -- R: HEAVY SWING
     if input.KeyCode == Enum.KeyCode.R then
         attacking = true
         for i = 1,15 do
-            staff.CFrame = root.CFrame * CFrame.Angles(0,0,math.rad(i*20)) * CFrame.new(2,0,0)
+            staff.CFrame = root.CFrame * CFrame.Angles(0,0,math.rad(i*25)) * CFrame.new(2,0,0)
             task.wait()
         end
         attacking = false
     end
 
-    -- F: Block pose
+    -- F: BLOCK
     if input.KeyCode == Enum.KeyCode.F then
         staff.CFrame = root.CFrame * CFrame.new(0,0,-2)
     end
 
-    -- G: Throw + return
+    -- G: THROW
     if input.KeyCode == Enum.KeyCode.G then
         attacking = true
         local original = staff.CFrame
 
-        for i = 1,20 do
-            staff.CFrame = root.CFrame * CFrame.new(0,0,-i)
+        for i = 1,15 do
+            staff.CFrame = root.CFrame * CFrame.new(0,0,-i*2)
             task.wait()
         end
 
-        for i = 20,1,-1 do
-            staff.CFrame = root.CFrame * CFrame.new(0,0,-i)
+        for i = 15,1,-1 do
+            staff.CFrame = root.CFrame * CFrame.new(0,0,-i*2)
             task.wait()
         end
 
@@ -127,12 +132,12 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
---// IDLE + SWING ANIMATION
+--// IDLE + SWING LOOP
 RS.RenderStepped:Connect(function()
     if not staff then return end
 
     if attacking then
-        angle += 0.3
+        angle += 0.25
         staff.CFrame = root.CFrame 
             * CFrame.new(1.5, 0, 0)
             * CFrame.Angles(0, 0, math.sin(angle)*2)
