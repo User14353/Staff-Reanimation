@@ -1,0 +1,140 @@
+local player = game.Players.LocalPlayer
+local char = player.Character
+local mouse = player:GetMouse()
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+
+--// FIND STAFF ACCESSORY (Back Accessory)
+local function getStaff()
+    for _,v in pairs(char:GetChildren()) do
+        if v:IsA("Accessory") then
+            local handle = v:FindFirstChild("Handle")
+            if handle and handle:FindFirstChild("SpecialMesh") then
+                if handle.MeshId == "rbxassetid://4146870364" then
+                    return handle
+                end
+            end
+        end
+    end
+end
+
+local staff = getStaff()
+local root = char:WaitForChild("HumanoidRootPart")
+
+--// STATE
+local attacking = false
+local debounce = false
+local combo = 0
+local angle = 0
+
+--// DAMAGE FUNCTION
+local function damage(hit, dmg)
+    if debounce then return end
+    local hum = hit.Parent:FindFirstChild("Humanoid")
+    if hum and hit.Parent ~= char then
+        debounce = true
+        hum:TakeDamage(dmg)
+        task.wait(0.2)
+        debounce = false
+    end
+end
+
+staff.Touched:Connect(function(hit)
+    if attacking then
+        damage(hit, 10)
+    end
+end)
+
+--// BASIC SWING (CLICK)
+mouse.Button1Down:Connect(function()
+    attacking = true
+    combo += 1
+    if combo > 3 then combo = 1 end
+end)
+
+mouse.Button1Up:Connect(function()
+    attacking = false
+end)
+
+--// KEYBINDS
+UIS.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+
+    -- Z: Spin attack
+    if input.KeyCode == Enum.KeyCode.Z then
+        attacking = true
+        for i = 1,20 do
+            staff.CFrame = root.CFrame * CFrame.Angles(0, math.rad(i*40), 0) * CFrame.new(2,0,0)
+            task.wait()
+        end
+        attacking = false
+    end
+
+    -- X: Slam
+    if input.KeyCode == Enum.KeyCode.X then
+        attacking = true
+        for i = 1,10 do
+            staff.CFrame = root.CFrame * CFrame.new(0, 3 - i*0.3, -2)
+            task.wait()
+        end
+        attacking = false
+    end
+
+    -- C: Dash hit
+    if input.KeyCode == Enum.KeyCode.C then
+        attacking = true
+        for i = 1,10 do
+            root.CFrame = root.CFrame * CFrame.new(0,0,-2)
+            task.wait()
+        end
+        attacking = false
+    end
+
+    -- R: Heavy swing
+    if input.KeyCode == Enum.KeyCode.R then
+        attacking = true
+        for i = 1,15 do
+            staff.CFrame = root.CFrame * CFrame.Angles(0,0,math.rad(i*20)) * CFrame.new(2,0,0)
+            task.wait()
+        end
+        attacking = false
+    end
+
+    -- F: Block pose
+    if input.KeyCode == Enum.KeyCode.F then
+        staff.CFrame = root.CFrame * CFrame.new(0,0,-2)
+    end
+
+    -- G: Throw + return
+    if input.KeyCode == Enum.KeyCode.G then
+        attacking = true
+        local original = staff.CFrame
+
+        for i = 1,20 do
+            staff.CFrame = root.CFrame * CFrame.new(0,0,-i)
+            task.wait()
+        end
+
+        for i = 20,1,-1 do
+            staff.CFrame = root.CFrame * CFrame.new(0,0,-i)
+            task.wait()
+        end
+
+        staff.CFrame = original
+        attacking = false
+    end
+end)
+
+--// IDLE + SWING ANIMATION
+RS.RenderStepped:Connect(function()
+    if not staff then return end
+
+    if attacking then
+        angle += 0.3
+        staff.CFrame = root.CFrame 
+            * CFrame.new(1.5, 0, 0)
+            * CFrame.Angles(0, 0, math.sin(angle)*2)
+    else
+        staff.CFrame = root.CFrame * CFrame.new(1.5, 0, 0)
+    end
+end)
