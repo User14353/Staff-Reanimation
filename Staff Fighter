@@ -4,6 +4,7 @@ local mouse = player:GetMouse()
 local UIS = game:GetService("UserInputService")
 local RS = game:GetService("RunService")
 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/GenesisFE/Genesis/refs/heads/main/Reanimation/FDless"))()
 --// FIND STAFF ACCESSORY (Back Accessory)
 local function getStaff()
     for _,v in pairs(char:GetChildren()) do
